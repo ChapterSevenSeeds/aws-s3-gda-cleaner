@@ -1,0 +1,44 @@
+services:
+  gda-cleaner:
+    build: .
+    container_name: gda-cleaner
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /mnt/data:/data:ro  # Mount your local backup path as read-only
+    environment:
+      # AWS Credentials
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+
+      # S3 Configuration
+      S3_BUCKET: ${S3_BUCKET}
+      S3_PREFIX: ${S3_PREFIX:-}
+
+      # Local path (inside container, matches the volume mount)
+      LOCAL_PATH: /data
+
+      # Schedule: run every Sunday at midnight
+      CRON_EXPRESSION: "0 0 * * 0"
+
+      # Deletion behavior: "prompt" or "auto"
+      DELETION_BEHAVIOR: prompt
+
+      # Stale time: 180 days (matches GDA minimum storage duration)
+      STALE_TIME: "180d"
+
+      # SMTP Configuration
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_TO: ${SMTP_TO}
+      SMTP_TLS: "true"
+
+      # Approval settings (prompt mode only)
+      HOSTNAME: ${HOSTNAME:-}                           # e.g., gda-cleaner.example.com
+      LISTEN_PORT: "8080"
+      APPROVAL_TOKEN_LIFETIME: ${APPROVAL_TOKEN_LIFETIME:-}  # e.g., "24h", empty = no expiry
