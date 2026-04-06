@@ -2,10 +2,8 @@ package notifier
 
 import (
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"html/template"
-	"log/slog"
 	"math"
 	"net"
 	"net/smtp"
@@ -25,11 +23,10 @@ type SMTPNotifier struct {
 	password string
 	from     string
 	to       string
-	useTLS   bool
 }
 
 // NewSMTPNotifier creates a new SMTP notifier.
-func NewSMTPNotifier(host string, port int, username, password, from, to string, useTLS bool) *SMTPNotifier {
+func NewSMTPNotifier(host string, port int, username, password, from, to string) *SMTPNotifier {
 	return &SMTPNotifier{
 		host:     host,
 		port:     port,
@@ -37,7 +34,6 @@ func NewSMTPNotifier(host string, port int, username, password, from, to string,
 		password: password,
 		from:     from,
 		to:       to,
-		useTLS:   useTLS,
 	}
 }
 
@@ -97,55 +93,7 @@ func (n *SMTPNotifier) sendEmail(subject, htmlBody string) error {
 		auth = smtp.PlainAuth("", n.username, n.password, n.host)
 	}
 
-	if n.useTLS {
-		return n.sendTLS(addr, auth, msg.Bytes())
-	}
 	return smtp.SendMail(addr, auth, n.from, []string{n.to}, msg.Bytes())
-}
-
-func (n *SMTPNotifier) sendTLS(addr string, auth smtp.Auth, msg []byte) error {
-	tlsConfig := &tls.Config{
-		ServerName: n.host,
-	}
-
-	conn, err := tls.Dial("tcp", addr, tlsConfig)
-	if err != nil {
-		return fmt.Errorf("TLS dial: %w", err)
-	}
-	defer conn.Close()
-
-	client, err := smtp.NewClient(conn, n.host)
-	if err != nil {
-		return fmt.Errorf("creating SMTP client: %w", err)
-	}
-	defer client.Close()
-
-	if auth != nil {
-		if err := client.Auth(auth); err != nil {
-			return fmt.Errorf("SMTP auth: %w", err)
-		}
-	}
-
-	if err := client.Mail(n.from); err != nil {
-		return fmt.Errorf("SMTP MAIL FROM: %w", err)
-	}
-	if err := client.Rcpt(n.to); err != nil {
-		return fmt.Errorf("SMTP RCPT TO: %w", err)
-	}
-
-	w, err := client.Data()
-	if err != nil {
-		return fmt.Errorf("SMTP DATA: %w", err)
-	}
-	if _, err := w.Write(msg); err != nil {
-		return fmt.Errorf("writing email body: %w", err)
-	}
-	if err := w.Close(); err != nil {
-		return fmt.Errorf("closing email writer: %w", err)
-	}
-
-	slog.Info("email sent", "to", n.to)
-	return client.Quit()
 }
 
 type fileEntry struct {

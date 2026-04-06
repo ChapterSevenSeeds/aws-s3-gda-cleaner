@@ -42,7 +42,6 @@ type Config struct {
 	SMTPPassword string
 	SMTPFrom     string
 	SMTPTo       string
-	SMTPTLS      bool
 
 	// HTTP / Approval
 	Hostname              string
@@ -96,7 +95,6 @@ func Load() (*Config, error) {
 	cfg.SMTPPassword = os.Getenv("SMTP_PASSWORD")
 	cfg.SMTPFrom = requiredEnv("SMTP_FROM")
 	cfg.SMTPTo = requiredEnv("SMTP_TO")
-	cfg.SMTPTLS = envBool("SMTP_TLS", true)
 
 	// HTTP
 	cfg.Hostname = os.Getenv("HOSTNAME")

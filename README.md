@@ -57,7 +57,6 @@ docker compose up -d
 | `SMTP_PASSWORD` | No | — | SMTP auth password |
 | `SMTP_FROM` | Yes | — | Sender email address |
 | `SMTP_TO` | Yes | — | Recipient email address |
-| `SMTP_TLS` | No | `true` | Use TLS for SMTP |
 | `HOSTNAME` | No | — | Public hostname for approval links (e.g., `gda-cleaner.example.com`) |
 | `LISTEN_PORT` | No | `8080` | HTTP server port |
 | `APPROVAL_TOKEN_LIFETIME` | No | `0` (∞) | How long approval tokens remain valid (e.g., `24h`, `7d`) |

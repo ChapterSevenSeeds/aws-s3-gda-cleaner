@@ -67,7 +67,6 @@ func main() {
 		cfg.SMTPHost, cfg.SMTPPort,
 		cfg.SMTPUsername, cfg.SMTPPassword,
 		cfg.SMTPFrom, cfg.SMTPTo,
-		cfg.SMTPTLS,
 	)
 
 	// Create engine (approval server wired below)
