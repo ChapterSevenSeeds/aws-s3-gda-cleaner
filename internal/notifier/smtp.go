@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"math"
 	"net"
 	"net/smtp"
 	"sort"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/balli/aws-s3-gda-cleaner/internal/deleter"
 	"github.com/balli/aws-s3-gda-cleaner/internal/scanner"
+	"github.com/dustin/go-humanize"
 )
 
 // SMTPNotifier sends notifications via email.
@@ -133,32 +133,19 @@ func buildTemplateData(candidates []scanner.S3Object) map[string]any {
 }
 
 func formatSize(bytes int64) string {
-	if bytes == 0 {
-		return "0 B"
+	if bytes < 0 {
+		bytes = 0
 	}
-	units := []string{"B", "KB", "MB", "GB", "TB"}
-	i := int(math.Log(float64(bytes)) / math.Log(1024))
-	if i >= len(units) {
-		i = len(units) - 1
-	}
-	val := float64(bytes) / math.Pow(1024, float64(i))
-	if i == 0 {
-		return fmt.Sprintf("%d B", bytes)
-	}
-	return fmt.Sprintf("%.2f %s", val, units[i])
+	return humanize.IBytes(uint64(bytes))
 }
 
 func formatAge(d time.Duration) string {
-	days := int(d.Hours() / 24)
-	if days > 365 {
-		years := days / 365
-		remaining := days % 365
-		return fmt.Sprintf("%dy %dd", years, remaining)
+	if d < 0 {
+		d = 0
 	}
-	if days > 0 {
-		return fmt.Sprintf("%dd", days)
-	}
-	return fmt.Sprintf("%dh", int(d.Hours()))
+	now := time.Now()
+	then := now.Add(-d)
+	return humanize.RelTime(then, now, "ago", "from now")
 }
 
 func renderTemplate(tmplStr string, data map[string]any) (string, error) {
